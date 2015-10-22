@@ -26,7 +26,7 @@ Well, it's unfair to compare them directly.
 But if you don't want to use strings as index but any other type PureBasic offers, then you would you need to convert these types into a string before you can use it as key.
 With D3HT you don't have that overhead
 
-D3HT with a base table size of 262144 elements
+D3HT with a base table size of 262144 elements:
 ```
 Created 1000000 elements. It took 0.167s
   List contains now 1000000 elements. Memory Usage: 13.632MB (13.685 MB)
@@ -35,7 +35,7 @@ Deleted 1000000 elements. It took 0.060s
   List contains now 0 elements. Memory Usage: 0.000MB (0.008 MB)
 ```
 
-The same operations with a map
+The same operations with a map:
 ```
 Created 1000000 elements. It took 109.952s
   List contains now 1000000 elements. Memory Usage: 48.554 MB
