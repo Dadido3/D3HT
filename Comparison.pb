@@ -87,6 +87,8 @@ ForEach Table()
   PrintN("----------- ~ D3HT | "+Table()\Description+" ~ ---")
   *D3HT_Table = Table()\D3HT_Table
   
+  Memory_Start.i = GetProcessPrivateUsage(GetCurrentProcess_())
+  
   Time = ElapsedMilliseconds()
   Old_Amount = D3HT::Get_Elements(*D3HT_Table)
   For i = 1 To #Amount
@@ -98,7 +100,7 @@ ForEach Table()
   Next
   PrintN("")
   PrintN("Created "+Str(D3HT::Get_Elements(*D3HT_Table)-Old_Amount)+" elements. It took "+StrF((ElapsedMilliseconds()-Time)/1000, 3)+"s")
-  PrintN("  List contains now "+Str(D3HT::Get_Elements(*D3HT_Table))+" elements. Memory Usage: "+StrF(D3HT::Get_Memoryusage(*D3HT_Table)/1000000, 3)+"MB")
+  PrintN("  List contains now "+Str(D3HT::Get_Elements(*D3HT_Table))+" elements. Memory Usage: "+StrF(D3HT::Get_Memoryusage(*D3HT_Table)/1000000, 3)+"MB ("+StrF((GetProcessPrivateUsage(GetCurrentProcess_()) - Memory_Start)/1000000, 3)+" MB)")
   
   
   Time = ElapsedMilliseconds()
@@ -131,7 +133,7 @@ ForEach Table()
   ;D3HT::Clear(*D3HT_Table)
   ; #### Should be much faster than deleting each element...
   PrintN("Deleted "+Str(Old_Amount-D3HT::Get_Elements(*D3HT_Table))+" elements. It took "+StrF((ElapsedMilliseconds()-Time)/1000, 3)+"s")
-  PrintN("  List contains now "+Str(D3HT::Get_Elements(*D3HT_Table))+" elements. Memory Usage: "+StrF(D3HT::Get_Memoryusage(*D3HT_Table)/1000000, 3)+"MB")
+  PrintN("  List contains now "+Str(D3HT::Get_Elements(*D3HT_Table))+" elements. Memory Usage: "+StrF(D3HT::Get_Memoryusage(*D3HT_Table)/1000000, 3)+"MB ("+StrF((GetProcessPrivateUsage(GetCurrentProcess_()) - Memory_Start)/1000000, 3)+" MB)")
   
   D3HT::Destroy(*D3HT_Table)
   Table()\D3HT_Table = #Null
@@ -246,9 +248,8 @@ PrintN("  List contains now "+Str(ListSize(PB_List()))+" elements. Memory Usage:
 
 Input()
 ; IDE Options = PureBasic 5.40 LTS Beta 8 (Windows - x64)
-; CursorPosition = 66
-; FirstLine = 39
+; CursorPosition = 135
+; FirstLine = 96
 ; Folding = -
-; EnableUnicode
 ; EnableXP
 ; DisableDebugger
