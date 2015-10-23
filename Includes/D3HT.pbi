@@ -56,6 +56,9 @@
 ;     - Improved CRC32
 ;     - Refactoring and cleanup of the code
 ; 
+; - 1.301 24.10.2015
+;     - Small improvements
+; 
 ; Documentation:
 ; - Table-Element:
 ;     - Metadata  (1 Byte)
@@ -77,7 +80,7 @@
 DeclareModule D3HT
   EnableExplicit
   ; ################################################### Constants ###################################################
-  #Version = 1300
+  #Version = 1301
   
   #Result_Fail = #False
   #Result_Success = #True
@@ -148,7 +151,7 @@ Module D3HT
   
   ; ################################################### Structures / Variables ######################################
   Structure Table_Buffer
-    Start_Hash.i
+    Start_Hash.l
     
     *Memory
     
@@ -179,9 +182,10 @@ Module D3HT
       mov   esi, *Key
       mov   eax, Start_Hash
       XOr   edx, edx
-      Or    eax, -1
+      Not   eax
       mov   ecx, Key_Size
       
+      !align 4
       loop:
       mov   dl, [esi]
       XOr   dl, al
@@ -226,9 +230,10 @@ Module D3HT
       mov   r8, *Key
       mov   eax, Start_Hash
       XOr   rdx, rdx
-      Or    eax, -1
+      Not   eax
       mov   rcx, Key_Size
       
+      !align 8
       loop:
       mov   dl, [r8]
       XOr   dl, al
@@ -737,7 +742,7 @@ Module D3HT
         DeleteElement(*Table\Buffer())
         ProcedureReturn #Result_Fail
       EndIf
-      *Table\Buffer()\Start_Hash = Random(2147483647)
+      RandomData(@*Table\Buffer()\Start_Hash, SizeOf(Long))
       
       Element_Pos = *Table\Hash_Function(*Key, *Table\Element_Key_Size, *Table\Buffer()\Start_Hash)
       
@@ -1145,8 +1150,8 @@ EndModule
 ; #################################################### Procedures ################################################
 
 
-; IDE Options = PureBasic 5.40 LTS Beta 8 (Windows - x64)
-; CursorPosition = 49
-; FirstLine = 25
+; IDE Options = PureBasic 5.40 LTS (Windows - x64)
+; CursorPosition = 59
+; FirstLine = 44
 ; Folding = ------
 ; EnableXP
