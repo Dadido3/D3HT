@@ -56,8 +56,9 @@
 ;     - Improved CRC32
 ;     - Refactoring and cleanup of the code
 ; 
-; - 1.301 24.10.2015
+; - 1.302 (INDEV)
 ;     - Small improvements
+;     - Faster CRC32
 ; 
 ; Documentation:
 ; - Table-Element:
@@ -80,7 +81,7 @@
 DeclareModule D3HT
   EnableExplicit
   ; ################################################### Constants ###################################################
-  #Version = 1301
+  #Version = 1302
   
   #Result_Fail = #False
   #Result_Success = #True
@@ -178,100 +179,107 @@ Module D3HT
     EnableASM
     
     CompilerIf #PB_Compiler_Processor = #PB_Processor_x86
-      ;push  esi ;TODO: preserve esi register!
-      mov   esi, *Key
-      mov   eax, Start_Hash
-      XOr   edx, edx
-      Not   eax
-      mov   ecx, Key_Size
+      MOV   ebx, *Key         ; ebx seems to be preserved by PB automatically (Even if not used)
+      MOV   eax, Start_Hash
+      XOR   edx, edx
+      NOT   eax
+      MOV   ecx, Key_Size
       
       !align 4
       loop:
-      mov   dl, [esi]
-      XOr   dl, al
-      shr   eax, 8
-      inc   esi
-      XOr   eax, [d3ht.l_crc32_table + 4*edx]
-      dec   ecx
-      jz    d3ht.ll_hash_crc32_quit
+      MOV   dl, [ebx]
+      XOR   dl, al
+      SHR   eax, 8
+      INC   ebx
+      XOR   eax, [d3ht.l_crc32_table + 4*edx]
+      DEC   ecx
+      JZ    d3ht.ll_hash_crc32_quit
       
       ; #### unrolling
-      mov   dl, [esi]
-      XOr   dl, al
-      shr   eax, 8
-      inc   esi
-      XOr   eax, [d3ht.l_crc32_table + 4*edx]
-      dec   ecx
-      jz    d3ht.ll_hash_crc32_quit
+      MOV   dl, [ebx]
+      XOR   dl, al
+      SHR   eax, 8
+      INC   ebx
+      XOR   eax, [d3ht.l_crc32_table + 4*edx]
+      DEC   ecx
+      JZ    d3ht.ll_hash_crc32_quit
       
       ; #### unrolling
-      mov   dl, [esi]
-      XOr   dl, al
-      shr   eax, 8
-      inc   esi
-      XOr   eax, [d3ht.l_crc32_table + 4*edx]
-      dec   ecx
-      jz    d3ht.ll_hash_crc32_quit
+      MOV   dl, [ebx]
+      XOR   dl, al
+      SHR   eax, 8
+      INC   ebx
+      XOR   eax, [d3ht.l_crc32_table + 4*edx]
+      DEC   ecx
+      JZ    d3ht.ll_hash_crc32_quit
       
       ; #### unrolling
-      mov   dl, [esi]
-      XOr   dl, al
-      shr   eax, 8
-      inc   esi
-      XOr   eax, [d3ht.l_crc32_table + 4*edx]
-      dec   ecx
-      jnz   d3ht.ll_hash_crc32_loop
+      MOV   dl, [ebx]
+      XOR   dl, al
+      SHR   eax, 8
+      INC   ebx
+      XOR   eax, [d3ht.l_crc32_table + 4*edx]
+      DEC   ecx
+      JNZ   d3ht.ll_hash_crc32_loop
       
       quit:
-      Not   eax
-      ;pop   esi
+      NOT   eax
     CompilerElse
-      mov   r9, d3ht.l_crc32_table
-      mov   r8, *Key
-      mov   eax, Start_Hash
-      XOr   rdx, rdx
-      Not   eax
-      mov   rcx, Key_Size
+      ; Fastcall:
+      ; *Key --> rcx
+      ; Key_Size --> rdx
+      ; Start_Hash --> r8
+      
+      MOV   eax, r8d ; Start_Hash
+      MOV   r9, d3ht.l_crc32_table
+      XOR   r8, r8
+      NOT   eax
+      CMP   rdx, 4
+      JB    d3ht.ll_hash_crc32_single_byte
       
       !align 8
-      loop:
-      mov   dl, [r8]
-      XOr   dl, al
-      shr   eax, 8
-      inc   r8
-      XOr   eax, [r9 + 4*rdx]
-      dec   rcx
-      jz    d3ht.ll_hash_crc32_quit
+      multi_bytes:
+      MOV   r15d, [rcx]
+      MOV   r8b, r15b
+      XOR   r8b, al
+      SHR   eax, 8
+      SHR   r15d, 8
+      XOR   eax, [r9 + 4*r8]
+      ; ####
+      MOV   r8b, r15b
+      XOR   r8b, al
+      SHR   eax, 8
+      SHR   r15d, 8
+      XOR   eax, [r9 + 4*r8]
+      ; ####
+      MOV   r8b, r15b
+      XOR   r8b, al
+      SHR   eax, 8
+      SHR   r15d, 8
+      XOR   eax, [r9 + 4*r8]
+      ; ####
+      MOV   r8b, r15b
+      XOR   r8b, al
+      SHR   eax, 8
+      XOR   eax, [r9 + 4*r8]
+      ; ####
+      SUB   rdx, 4
+      JZ    d3ht.ll_hash_crc32_quit
+      ADD   rcx, 4
+      CMP   rdx, 4
+      JAE   d3ht.ll_hash_crc32_multi_bytes
       
-      ; #### unrolling
-      mov   dl, [r8]
-      XOr   dl, al
-      shr   eax, 8
-      inc   r8
-      XOr   eax, [r9 + 4*rdx]
-      dec   rcx
-      jz    d3ht.ll_hash_crc32_quit
-      
-      ; #### unrolling
-      mov   dl, [r8]
-      XOr   dl, al
-      shr   eax, 8
-      inc   r8
-      XOr   eax, [r9 + 4*rdx]
-      dec   rcx
-      jz    d3ht.ll_hash_crc32_quit
-      
-      ; #### unrolling
-      mov   dl, [r8]
-      XOr   dl, al
-      shr   eax, 8
-      inc   r8
-      XOr   eax, [r9 + 4*rdx]
-      dec   rcx
-      jnz   d3ht.ll_hash_crc32_loop
+      single_byte:
+      MOV   r8b, [rcx]
+      XOR   r8b, al
+      SHR   eax, 8
+      INC   rcx
+      XOR   eax, [r9 + 4*r8]
+      DEC   rdx
+      JNZ   d3ht.ll_hash_crc32_single_byte
       
       quit:
-      Not   eax
+      NOT   eax
     CompilerEndIf
     
     DisableASM
@@ -515,12 +523,12 @@ Module D3HT
       MOV ecx, Key_Size       ;ecx = length of buffer (counter)
       MOV eax, Start_Hash     ;set to 0 for FNV-0, or 2166136261 for FNV-1
       MOV edi, $01000193      ;FNV_32_PRIME = 16777619
-      XOr ebx, ebx            ;ebx = 0
+      XOR ebx, ebx            ;ebx = 0
       
       loop:
       MUL edi                 ;eax = eax * FNV_32_PRIME
       MOV bl, [esi]           ;bl = byte from esi
-      XOr eax, ebx            ;al = al xor bl
+      XOR eax, ebx            ;al = al xor bl
       INC esi                 ;esi = esi + 1 (buffer pos)
       DEC ecx                 ;ecx = ecx - 1 (counter)
       JNZ d3ht.ll_hash_fnv32_loop ;if ecx is 0, jmp to NextByte
@@ -529,12 +537,12 @@ Module D3HT
       MOV rcx, Key_Size       ;ecx = length of buffer (counter)
       MOV eax, Start_Hash     ;set to 0 for FNV-0, or 2166136261 for FNV-1
       MOV r9, $01000193       ;FNV_32_PRIME = 16777619
-      XOr ebx, ebx            ;ebx = 0
+      XOR ebx, ebx            ;ebx = 0
       
       loop:
       MUL r9                  ;eax = eax * FNV_32_PRIME
       MOV bl, [r8]            ;bl = byte from esi
-      XOr eax, ebx            ;al = al xor bl
+      XOR eax, ebx            ;al = al xor bl
       INC r8                  ;esi = esi + 1 (buffer pos)
       DEC rcx                 ;ecx = ecx - 1 (counter)
       JNZ d3ht.ll_hash_fnv32_loop ;if ecx is 0, jmp to NextByte
@@ -1150,8 +1158,9 @@ EndModule
 ; #################################################### Procedures ################################################
 
 
-; IDE Options = PureBasic 5.40 LTS (Windows - x64)
-; CursorPosition = 59
-; FirstLine = 44
+; IDE Options = PureBasic 5.41 LTS Beta 1 (Windows - x64)
+; CursorPosition = 278
+; FirstLine = 252
 ; Folding = ------
+; EnableAsm
 ; EnableXP
