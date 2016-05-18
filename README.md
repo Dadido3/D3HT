@@ -28,20 +28,21 @@ With D3HT you don't have that overhead
 
 D3HT with a base table size of 262144 elements:
 ```
-Created 1000000 elements. It took 0.167s
+Created 1000000 elements. It took 0.153s
   List contains now 1000000 elements. Memory Usage: 13.632MB (13.685 MB)
-Read and checked 1000000 elements. It took 0.133s
-Deleted 1000000 elements. It took 0.060s
+Read and checked 1000000 elements. It took 0.118s
+Deleted 1000000 elements. It took 0.054s
   List contains now 0 elements. Memory Usage: 0.000MB (0.008 MB)
 ```
 
 The same operations with a map:
 ```
-Created 1000000 elements. It took 109.952s
-  List contains now 1000000 elements. Memory Usage: 48.554 MB
-Read and checked 1000000 elements. It took 107.376s
-Deleted 1000000 elements. It took 107.871s
-  List contains now 0 elements. Memory Usage: 0.840 MB
+Created 1000000 elements. It took 0.384s
+  List contains now 1000000 elements. Memory Usage: 51.937 MB
+Read and checked 1000000 elements. It took 0.325s
+Deleted 1000000 elements. It took 0.364s
+  List contains now 0 elements. Memory Usage: 2.933 MB
 ```
 
-As you can see D3HT is about 800 times faster and uses less memory if you have around a million elements.
+As you can see D3HT is about 2.5 times faster and uses less memory if you have around a million elements.
+

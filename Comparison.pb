@@ -140,11 +140,11 @@ ForEach Table()
 Next
 
 PrintN("")
-PrintN("-------------- ~ Purebasic Map ~ -------------------")
+PrintN("-------------- ~ Purebasic Map | Tablesize:65536*4 ~ -------------------")
 
 Memory_Start.i = GetProcessPrivateUsage(GetCurrentProcess_())
 
-NewMap PB_Map.i()
+NewMap PB_Map.i(65536*4)
 
 Time = ElapsedMilliseconds()
 Old_Amount = MapSize(PB_Map())
@@ -247,9 +247,10 @@ PrintN("Deleted "+Str(Old_Amount-ListSize(PB_List()))+" elements. It took "+StrF
 PrintN("  List contains now "+Str(ListSize(PB_List()))+" elements. Memory Usage: "+StrF((GetProcessPrivateUsage(GetCurrentProcess_()) - Memory_Start)/1000000, 3)+" MB")
 
 Input()
-; IDE Options = PureBasic 5.40 LTS Beta 8 (Windows - x64)
-; CursorPosition = 135
-; FirstLine = 96
+; IDE Options = PureBasic 5.42 LTS (Windows - x64)
+; CursorPosition = 152
+; FirstLine = 123
 ; Folding = -
 ; EnableXP
 ; DisableDebugger
+; Compiler = PureBasic 5.42 LTS (Windows - x64)
